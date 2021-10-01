@@ -1,17 +1,13 @@
+.include "cpctelera.h.s"
 
-.globl cpct_memset_asm
-.globl cpct_memcpy_asm
-
-;;Maths utilities
-.globl inc_hl_number
-.globl dec_bc_number
+.area _DATA
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; """""Variables""""
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-m_entities: .ds 280                     ;;Reserved memory for the entities array
+m_entities: .ds 120                    ;;Reserved memory for the entities array
 m_zero_type_at_the_end: .db #0x00       ;;Trick for stop the loop of entities, positioned
-max_entities: .db 40                  ;;Num of maximum entities
+max_entities: .db 12                    ;;Num of maximum entities
 m_next_free_entity: .ds 2               ;;Reserved memory for the pointer of the next free entity
 m_num_entities: .db 0                   ;;Current number of entities
 m_function_given_forall: .dw #0x0000    ;;Memory direction of the function that we want to execute
@@ -19,12 +15,28 @@ m_function_given_forall: .dw #0x0000    ;;Memory direction of the function that 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-entity_size             = 7
-entity_type_invalid     = 0x00
-entity_type_star        = 0x01          ;;Lower bit signals star entity
-entity_type_dead        = 0x80          ;;Upper bit signals dead entity
-entity_type_default     = 0x7F         ;;Default entity (all bits = 1 but the one to signal dead)
+entity_size = 10
+entity_type_invalid = 0x00
+entity_type_render = 0x01 ;;Lower bit signals renderable entity
+entity_type_movable = 0x02 ;;Lower bit signals movable entity
+entity_type_input = 0x04 ;;Lower bit signals input controlled entity
+entity_type_dead = 0x80 ;;Upper bit signals dead entity
+entity_type_default = 0x7F  ;;Default entity (all bits = 1 but the one to signal dead)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;Entity struct:
+;;  - type, x, y, w, h, vx, vy, sprite
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+.area _CODE
+
+
+.globl cpct_memset_asm
+.globl cpct_memcpy_asm
+
+;;Maths utilities
+.globl inc_hl_number
+.globl dec_bc_number
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pre requirements

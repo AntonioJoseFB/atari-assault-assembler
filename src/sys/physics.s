@@ -1,3 +1,7 @@
+.include "cpctelera.h.s"
+
+.area _DATA
+.area _CODE
 .globl man_entity_forall
 .globl man_entity_set4destruction
 

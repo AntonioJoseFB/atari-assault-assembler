@@ -1,8 +1,14 @@
+.include "cpctelera.h.s"
+
+.area _DATA
+.area _CODE
+
 .globl _cpct_setPALColour
 .globl _cpct_setVideoMode
 .globl _cpct_setPalette
 .globl man_entity_forall
 .globl cpct_getScreenPtr_asm
+.globl cpct_drawSprite_asm
 
 ;;States of an entity
 .globl entity_type_dead
@@ -60,48 +66,15 @@ ret
 ;; Modifies: a, bc, de, (hl no se si lo modifica)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 sys_render_one_entity:
+    ;;Now, we should check if the start is dead, hl is pointing to the beginning of the entity
+
+    ;;Type of the star
+    ld a, (hl)           
+    ld b, #entity_type_dead 
+
+    and b
     
-    ld a, #0x06
-    call inc_hl_number
-
-    ;;Now hl, is pointing to the prevptr (last positioin) = 00 C8 <---------
-    ld a, #0x00
-    ld d, (hl)
-    
-    ;;Check if prevptr was 0, if it wasn't we should not delete it
-    sub d
-
-    jr nz, to_erase
-
-    jr to_draw
-
-    to_erase:
-        ld b, (hl)
-        dec hl
-        ld c, (hl)
-
-        ;;Now, de is the prevptr DE = C8 00, erase the last draw
-        ld a, #0x00
-        ld (bc), a 
-
-        inc hl
-
-    to_draw:
-
-        ;;Positioning hl at the beginning of the entity
-        ld a, #0x06
-        call dec_hl_number
-
-        ;;Now, we should check if the start is dead, hl is pointing to the beginning of the entity
-
-        ;;Type of the star
-        ld a, (hl)           
-        ld b, #entity_type_dead 
-
-        and b
-        
-        jr nz, star_dead_no_render
-
+    jr nz, star_dead_no_render
 
     ;;The star is alive, we should render it
     ld de, #0xC000
@@ -110,40 +83,48 @@ sys_render_one_entity:
     ld c, (hl)
     inc hl
     ld b, (hl)
-    inc hl
-    inc hl
-    ld a, (hl)
 
-    dec hl
-    dec hl
     dec hl
     dec hl
 
     push hl
-    push af
 
     call cpct_getScreenPtr_asm
-
-    pop af
-    ld (hl), a
     
+    ;;Save in bc pvmem
     ld c, l
     ld b, h
 
+    ;;point hl to the beginning of the entity
     pop hl
+    push hl
 
-    ;;Now we have, BC with new prevptr, and HL is pointing to the beginnning of the entity (type)
-    ld a, #0x05
-    call inc_hl_number
+    ;;We are going to get the pvmem, w, h, sprite
+    ld e, c
+    ld d, b
+    push de
 
-    ld (hl), c
-    
     inc hl
-    
-    ld (hl), b
+    inc hl
+    inc hl
+    ld c, (hl) ;; load in c --> width
+    inc hl
+    ld b, (hl) ;; load in b --> height
+    inc hl
+    inc hl
+    inc hl
+    ;; load in hl --> the sprite
+    ld e, (hl) 
+    inc hl
+    ld d, (hl)
+    ld l, e
+    ld h, d
 
-    ld a, #0x06
-    call dec_hl_number
+    pop de ;;de contains the pvmem again
+
+    call cpct_drawSprite_asm
+
+    pop hl ;;hl points to the beginnign of the entity
 
     star_dead_no_render:
 ret
