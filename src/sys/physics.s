@@ -31,7 +31,7 @@ sys_physics_update_one_entity::
     add a, c
 
     push af
-
+    ;;TODO: Hay que cambiar la comprobacion para eliminar una entidad, porque con esta las que estan quietas se mueren
     sub b
     ;;If the sum causes zero in a, the entity should be destroyed
     jr nc, destroy_entity

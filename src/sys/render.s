@@ -6,9 +6,12 @@
 .globl _cpct_setPALColour
 .globl _cpct_setVideoMode
 .globl _cpct_setPalette
+.globl cpct_setPalette_asm
 .globl man_entity_forall
 .globl cpct_getScreenPtr_asm
 .globl cpct_drawSprite_asm
+
+.globl _main_palette
 
 ;;States of an entity
 .globl entity_type_dead
@@ -16,24 +19,6 @@
 ;;Maths utilities
 .globl inc_hl_number
 .globl dec_hl_number
-
-palette::
-    .db #0x14	; 20
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
-	.db #0x0b	; 11
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pre requirements
@@ -50,11 +35,9 @@ sys_render_init::
 	push    hl 
 	call	_cpct_setPALColour
 
-	ld hl, #0x0010
-	push    hl 
-    ld hl, #palette
-    push hl
-    call _cpct_setPalette
+    ld hl,  #_main_palette
+    ld de,  #16
+    call    cpct_setPalette_asm
 ret
 
 
@@ -112,7 +95,12 @@ sys_render_one_entity:
     ld b, (hl) ;; load in b --> height
     inc hl
     inc hl
+    inc hl ;; points to the 2 lower bytes of the direction of the sprite
+    ld e, (hl)
     inc hl
+    ld d, (hl)
+    ld l, e ;; save th direction fo the sprite in hl
+    ld h, d
 
     pop de ;;de contains the pvmem again
 

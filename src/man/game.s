@@ -20,38 +20,82 @@
 
 ;;Global variables references
 .globl entity_size
+.globl entity_type_render
+.globl entity_type_movable
+
+;;math utils
+.globl inc_de_number
+.globl dec_de_number
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Sprite:
-;;  - 4 width, 6 height
+;;  - 4 width, 6 height = 24bytes
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-e_sprite::
-    .db #0xFF, #0xFF, #0xFF, #0xFF
-    .db #0xFF, #0xFF, #0xFF, #0xFF
-    .db #0xFF, #0xFF, #0xFF, #0xFF
-    .db #0xFF, #0xFF, #0xFF, #0xFF
-    .db #0xFF, #0xFF, #0xFF, #0xFF
-    .db #0xFF, #0xFF, #0xFF, #0xFF
+mothership_sprite::
+    .db #0x00, #0x0F, #0x0F, #0x00 ;; TODO: Tenemos que hacer lo de la lectura de sprites, conversion y setear la paleta
+    .db #0x00, #0x0F, #0x0F, #0x00
+    .db #0x00, #0x0F, #0x0F, #0x00
+    .db #0x00, #0x0F, #0x0F, #0x00
+    .db #0x00, #0x0F, #0x0F, #0x00
+    .db #0x00, #0x0F, #0x0F, #0x00
 
+playership_sprite::
+    .db #0x00, #0xFF, #0xFF, #0x00 ;; TODO: Tenemos que hacer lo de la lectura de sprites, conversion y setear la paleta
+    .db #0x00, #0xFF, #0xFF, #0x00
+    .db #0x00, #0xFF, #0xFF, #0x00
+    .db #0x00, #0xFF, #0xFF, #0x00
+    .db #0x00, #0xFF, #0xFF, #0x00
+    .db #0x00, #0xFF, #0xFF, #0x00
+
+player_sprite::
+    .db #0x00, #0x88, #0x88, #0x00 ;; TODO: Tenemos que hacer lo de la lectura de sprites, conversion y setear la paleta
+    .db #0x00, #0x88, #0x88, #0x00
+    .db #0x00, #0x88, #0x88, #0x00
+    .db #0x00, #0x88, #0x88, #0x00
+    .db #0x00, #0x88, #0x88, #0x00
+    .db #0x00, #0x88, #0x88, #0x00
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Entity struct:
 ;;  - type, x, y, w, h, vx, vy, sprite
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-init_e::
-    .db #0x03   ;; entity_type_movable | entity_type_render
+mothership_template::
+    .db #0x03   ;; TODO:poner como entity_type_movable | entity_type_render
     .db 38      ;; x
-    .db 96      ;; y
-    .db #0x04   ;; w
-    .db #0x06   ;; h
+    .db 10      ;; y
+    .db #0x04   ;; w ;;TODO: se supone que con los sprites se nos van a crear unas macros
+    .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
     .db #0xFF   ;; vx = -1
     .db #0x00   ;; vy = 0
-    .db #0xFF, #0xFF, #0xFF, #0xFF ;;content of the sprite --> se supone que ahi podria poner (sprite), pero no los carga
-    .db #0xFF, #0xFF, #0xFF, #0xFF
-    .db #0xFF, #0xFF, #0xFF, #0xFF
-    .db #0xFF, #0xFF, #0xFF, #0xFF
-    .db #0xFF, #0xFF, #0xFF, #0xFF
-    .db #0xFF, #0xFF, #0xFF, #0xFF
+    .dw mothership_sprite
 
+playership_template::
+    .db #0x01  ;; entity_type_render
+    .db 1      ;; x
+    .db 192     ;; y
+    .db #0x04   ;; w ;;TODO: se supone que con los sprites se nos van a crear unas macros
+    .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
+    .db #0xff   ;; vx = 0 TODO: acordarme de ponerle velocidad 0
+    .db #0x00   ;; vy = 0
+    .dw playership_sprite
+
+player_template::
+    .db #0x07  ;; entity_type_render | entity_type_movable | entity_type_input
+    .db 38      ;; x
+    .db 180     ;; y
+    .db #0x04   ;; w ;;TODO: se supone que con los sprites se nos van a crear unas macros
+    .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
+    .db #0xff   ;; vx = 0 TODO: acordarme de ponerle velocidad 0, este se va a mover por los inputs
+    .db #0x00   ;; vy = 0
+    .dw player_sprite
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;MAN_GAME_WAIT 
+;;Pre requirements
+;;  - a: should contain the times to execute the loop
+;; Objetive: make VSYNC slower
+;; Modifies: a
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 man_game_wait:
     ;;a contains the number of times to do this
     while_remain_halts:
@@ -63,14 +107,55 @@ man_game_wait:
         dec a 
         jr nz, while_remain_halts
     ret
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;man_game_create_template_entity
+;;Pre requirements
+;;  - hl: contains the template direction to be used
+;;  - bc contains the size of the entity to be created
+;; Objetive: create an entity in fucntion of the template it is
+;; Modifies: hl, bc, de
+;; Returns: de contains the direction of the entity created
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+man_game_create_template_entity::
+    ;;hl contains the template direction to be used
+    ;;bc contains the size of the entity to be created
+    push hl
+    push bc
+    call man_entity_create
+    pop bc
+    pop hl
+
+    push de ;;contains the direction of the entity created
+    call cpct_memcpy_asm
+    pop de
+    ret
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;man_game_init
+;;Pre requirements
+;;  -
+;; Objetive: initialize all necessary entities
+;; Modifies: hl, bc, de
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 man_game_init::
     call man_entity_init
     call sys_render_init
 
-    call man_entity_create ;; de contains the direction of the entity created
-    ld hl, #init_e
+    ;;creating the mothership
+    ld hl, #mothership_template
     ld bc, #entity_size
-    call cpct_memcpy_asm
+    call man_game_create_template_entity
+
+    ;;This is the scoreboard
+    ;;creating the playerships
+    ld hl, #playership_template
+    ld bc, #entity_size
+    ;;TODO: meter esto en un bucle y crear 3 playership en diferentes posiciones
+    call man_game_create_template_entity
+
+    ;;creating the player
+    ld hl, #player_template
+    ld bc, #entity_size
+    call man_game_create_template_entity
 
     ret
 
