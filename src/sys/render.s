@@ -113,12 +113,6 @@ sys_render_one_entity:
     inc hl
     inc hl
     inc hl
-    ;; load in hl --> the sprite
-    ld e, (hl) 
-    inc hl
-    ld d, (hl)
-    ld l, e
-    ld h, d
 
     pop de ;;de contains the pvmem again
 

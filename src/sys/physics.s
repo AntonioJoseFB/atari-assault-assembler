@@ -21,8 +21,8 @@ sys_physics_update_one_entity::
     ld b, (hl)
 
     ;;C is the current entity vel_x
-    inc hl
-    inc hl
+    ld a, #0x04
+    call inc_hl_number
     ld c, (hl)
 
     ;;Pos_x + Vel_x to know the new position of the entity
@@ -37,8 +37,8 @@ sys_physics_update_one_entity::
     jr nc, destroy_entity
 
     ;;Coming back to the pos_x memory direction fo the entity to modify it
-    dec hl
-    dec hl
+    ld a, #0x04
+    call dec_hl_number
 
     pop af
 
@@ -51,7 +51,7 @@ sys_physics_update_one_entity::
     destroy_entity:
         pop af
 
-        ld a, #0x03
+        ld a, #0x05
         call dec_hl_number
 
         call man_entity_set4destruction

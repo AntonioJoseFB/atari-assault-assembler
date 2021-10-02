@@ -5,9 +5,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; """""Variables""""
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-m_entities: .ds 120                    ;;Reserved memory for the entities array
+m_entities: .ds 310                    ;;Reserved memory for the entities array
 m_zero_type_at_the_end: .db #0x00       ;;Trick for stop the loop of entities, positioned
-max_entities: .db 12                    ;;Num of maximum entities
+max_entities: .db 10                    ;;Num of maximum entities
 m_next_free_entity: .ds 2               ;;Reserved memory for the pointer of the next free entity
 m_num_entities: .db 0                   ;;Current number of entities
 m_function_given_forall: .dw #0x0000    ;;Memory direction of the function that we want to execute
@@ -15,7 +15,7 @@ m_function_given_forall: .dw #0x0000    ;;Memory direction of the function that 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-entity_size = 10
+entity_size = 31 ;; 31 bytes = 24bytes de sprite + 7bytes datos
 entity_type_invalid = 0x00
 entity_type_render = 0x01 ;;Lower bit signals renderable entity
 entity_type_movable = 0x02 ;;Lower bit signals movable entity
@@ -52,8 +52,7 @@ man_entity_init::
     ld de, #m_entities
     ld a, #0x00
     ;;TODO: Se supone que aqui deberia poner (#m_entities) pero si lo pongo no funciona
-    ;; no me voy a pelear ahora la verdad osea que cojones vaya curro
-    ld bc, #70
+    ld bc, #0x1F
 
     call cpct_memset_asm
     
