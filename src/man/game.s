@@ -74,7 +74,7 @@ playership_template::
     .db 192     ;; y
     .db #0x04   ;; w ;;TODO: se supone que con los sprites se nos van a crear unas macros
     .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
-    .db #0xff   ;; vx = 0 TODO: acordarme de ponerle velocidad 0
+    .db #0x00   ;; vx = 0 TODO: acordarme de ponerle velocidad 0
     .db #0x00   ;; vy = 0
     .dw playership_sprite
 
@@ -84,7 +84,7 @@ player_template::
     .db 180     ;; y
     .db #0x04   ;; w ;;TODO: se supone que con los sprites se nos van a crear unas macros
     .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
-    .db #0xff   ;; vx = 0 TODO: acordarme de ponerle velocidad 0, este se va a mover por los inputs
+    .db #0x00  ;; vx = 0 TODO: acordarme de ponerle velocidad 0, este se va a mover por los inputs
     .db #0x00   ;; vy = 0
     .dw player_sprite
 
