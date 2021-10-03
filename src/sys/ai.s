@@ -16,6 +16,8 @@
 .globl entity_type_render
 .globl entity_type_ai
 
+.globl man_game_create_enemy
+
 m_function_given_ai:: .dw #0x0000
 
 
@@ -70,6 +72,31 @@ sys_ai_behviour_left_right::
     call dec_hl_number
 ret
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Pre requirements
+;;  - HL: should contain the memory direction of the entity we want to check left/right move
+;; Objetive: Make that the AI mothershp entity behaves as we have defined
+;; Modifies: a, bc, (hl no se si lo modifica)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+sys_ai_behviour_mothership::
+    
+    ld a, #0x14
+    inc hl
+    sub (hl)
+    jr nz, no_spawn_entity
+    
+    dec hl
+    call man_game_create_enemy
+    jr end_of_ai_behaviour
+
+    no_spawn_entity:
+    dec hl
+
+    end_of_ai_behaviour:
+
+    call sys_ai_behviour_left_right
+ret
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pre requirements
@@ -82,12 +109,13 @@ sys_ai_update_one_entity::
     ld a, #0x0A
     call inc_hl_number ;;hl points to the behaviour function
 
-    ;;Save the memory direction of the behaviour function in de
-    ld a, (hl)
-    ld e, a
-    dec hl
+    ;;Save the memory direction of the behaviour function in de 
+    ;;TODO: revisar como me guardo en de la direccionde memoria de la funcion a llamar para la AI
     ld a, (hl)
     ld d, a
+    dec hl
+    ld a, (hl)
+    ld e, a
     ld (#m_function_given_ai), de
 
     ld a, #0x09

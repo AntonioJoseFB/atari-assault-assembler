@@ -12,8 +12,11 @@
 .globl sys_render_init
 .globl sys_physics_update
 .globl sys_render_update
+
+;;AI system
 .globl sys_ai_update
 .globl sys_ai_behviour_left_right
+.globl sys_ai_behviour_mothership
 
 ;;cpctelera utilities
 .globl cpct_waitVSYNC_asm
@@ -28,10 +31,14 @@
 ;;math utils
 .globl inc_de_number
 .globl dec_de_number
+.globl inc_hl_number
+.globl dec_hl_number
+
+m_enemy_on_lane:: .db #0x00
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Sprite:
-;;  - 4 width, 6 height = 24bytes
+;;  - 4 width, 6 height = 24bytes, TODO: cada sprite tendra sus dimensiones y tamanyo en memoria
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 mothership_sprite::
     .db #0x00, #0x0F, #0x0F, #0x00 ;; TODO: Tenemos que hacer lo de la lectura de sprites, conversion y setear la paleta
@@ -40,6 +47,14 @@ mothership_sprite::
     .db #0x00, #0x0F, #0x0F, #0x00
     .db #0x00, #0x0F, #0x0F, #0x00
     .db #0x00, #0x0F, #0x0F, #0x00
+
+enemy1_sprite::
+    .db #0x00, #0xF0, #0xF0, #0x00 ;; TODO: Tenemos que hacer lo de la lectura de sprites, conversion y setear la paleta
+    .db #0x00, #0xF0, #0xF0, #0x00
+    .db #0x00, #0xF0, #0xF0, #0x00
+    .db #0x00, #0xF0, #0xF0, #0x00
+    .db #0x00, #0xF0, #0xF0, #0x00
+    .db #0x00, #0xF0, #0xF0, #0x00
 
 playership_sprite::
     .db #0x00, #0xFF, #0xFF, #0x00 ;; TODO: Tenemos que hacer lo de la lectura de sprites, conversion y setear la paleta
@@ -58,7 +73,7 @@ player_sprite::
     .db #0x00, #0x88, #0x88, #0x00
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Entity struct:
-;;  - type, x, y, w, h, vx, vy, sprite
+;;  - type, x, y, w, h, vx, vy, sprite, ai_behaviour
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 mothership_template::
     .db #0x0B   ;; TODO:poner como entity_type_movable | entity_type_render | entity_type_ai
@@ -69,8 +84,18 @@ mothership_template::
     .db #0xFF   ;; vx = -1
     .db #0x00   ;; vy = 0
     .dw mothership_sprite
-    .dw #sys_ai_behviour_left_right ;;direccion de memoria de la funcion behviour
+    .dw #sys_ai_behviour_mothership ;;ai_behaviour function
 
+enemy1_template::
+    .db #0x0B   ;; TODO:poner como entity_type_movable | entity_type_render | entity_type_ai
+    .db 0      ;; x
+    .db 40      ;; y
+    .db #0x04   ;; w ;;TODO: se supone que con los sprites se nos van a crear unas macros
+    .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
+    .db #0x00   ;; vx = -1
+    .db #0x00   ;; vy = 0
+    .dw enemy1_sprite
+    .dw #sys_ai_behviour_left_right ;;ai_behaviour function
 
 playership_template::
     .db #0x01   ;; entity_type_render
@@ -81,7 +106,7 @@ playership_template::
     .db #0x00   ;; vx = 0 TODO: acordarme de ponerle velocidad 0
     .db #0x00   ;; vy = 0
     .dw playership_sprite
-    .ds 2;;.dw direccion de memoria de la funcion behviour
+    .dw #0x0000 ;;Doesnt have ai_behviour
 
 player_template::
     .db #0x07  ;; entity_type_render | entity_type_movable | entity_type_input
@@ -92,7 +117,7 @@ player_template::
     .db #0x00  ;; vx = 0 TODO: acordarme de ponerle velocidad 0, este se va a mover por los inputs
     .db #0x00   ;; vy = 0
     .dw player_sprite
-    .ds 2;;.dw direccion de memoria de la funcion behviour
+    .dw #0x0000 ;;Doesnt have ai_behviour
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -135,6 +160,63 @@ man_game_create_template_entity::
     call cpct_memcpy_asm
     pop de
     ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;man_game_create_enemy
+;;Pre requirements
+;;  - hl: contains the direction fo the mothership
+;; Objetive: create an enemy
+;; Modifies: hl, bc, de
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+man_game_create_enemy::
+    ;;if there is an enemy alredy on lane, do not create enemy
+    ld a, (#m_enemy_on_lane)
+    dec a
+    jr z, no_create_enemy
+
+    ;;creating an enemy
+    push hl ;;save direction of the mothership
+
+    ld hl, #enemy1_template
+    ld bc, #entity_size
+    call man_game_create_template_entity
+
+    pop hl
+
+    ;;save in a mothership_x
+    inc hl
+    ld a, #0x04
+    add a, (hl)
+    inc de
+    ld (de), a
+
+    ;; hl points to the vel_x of the mothership
+    ld a, #0x04
+    call inc_hl_number
+
+    ;; de points to the vel_x of the enemy
+    ld a, #0x04
+    call inc_de_number
+
+    ;;take the vel_x of the mothership and set it as the vel_x of the enemy
+    ld a, (hl)
+    ld (de), a
+    
+    ;; hl points to the beginning of the mothership
+    ld a, #0x05
+    call dec_hl_number
+
+    ;; de points to the beginning of the enemy
+    ld a, #0x05
+    call dec_de_number
+
+    ;;Mark that there is an enemy on lane
+    ld a, #0x01
+    ld (#m_enemy_on_lane), a
+
+    no_create_enemy:
+    ret
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;man_game_init
 ;;Pre requirements
@@ -158,7 +240,6 @@ man_game_init::
     ld hl, #playership_template
     ld bc, #entity_size
     call man_game_create_template_entity
-
     
     ld hl, #playership_template
     ld bc, #entity_size
@@ -177,7 +258,7 @@ man_game_init::
     dec de
 
 
-    ;;creating the player
+    ;;Creating the player
     ld hl, #player_template
     ld bc, #entity_size
     call man_game_create_template_entity
