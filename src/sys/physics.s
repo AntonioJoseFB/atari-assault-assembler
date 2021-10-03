@@ -21,6 +21,7 @@
 
 .globl entity_type_movable
 .globl entity_type_input
+.globl entity_type_render
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -148,12 +149,12 @@ sys_physics_update::
     ld bc, #0x0000
 
     ;;Forma de David
-    ;;ld a, #entity_type_movable
-    ;;add a, #entity_type_render
-    ;;ld c, a
+    ld a, #entity_type_movable
+    add a, #entity_type_render
+    ld c, a
 
     ;;Mi forma
-    ld c, #entity_type_movable
+    ;;ld c, #entity_type_movable
     call man_entity_forall_matching
 
 ret
