@@ -6,7 +6,7 @@
 ;;m_right_key:: .db #0x61
 
 .area _CODE
-.globl man_entity_forall
+.globl man_entity_forall_matching
 .globl man_entity_set4destruction
 
 ;;Maths utilities
@@ -143,6 +143,17 @@ sys_physics_check_input::
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 sys_physics_update::
     ld de, #sys_physics_update_one_entity
-    call man_entity_forall
+    
+    ;;bc will contain the signature
+    ld bc, #0x0000
+
+    ;;Forma de David
+    ;;ld a, #entity_type_movable
+    ;;add a, #entity_type_render
+    ;;ld c, a
+
+    ;;Mi forma
+    ld c, #entity_type_movable
+    call man_entity_forall_matching
 
 ret

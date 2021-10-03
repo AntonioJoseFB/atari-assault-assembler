@@ -131,6 +131,53 @@ ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pre requirements
+;;  - de: should contain the memory direction for the given function to be called
+;;  - bc: contains a signature that needs to be true to call the function in de
+;; Objetive: For all the entities, execute the function given by the systems
+;;
+;; Modifies: (Probably almost all the entities)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;   
+man_entity_forall_matching::
+    ld hl, #m_entities
+    ;;Keeping the function adress in a variable to use it.
+    ld (m_function_given_forall), de
+        repeat_man_entity_forall_matching:
+
+        ;;Compare against type to know if we should continue looping
+        ld a, (hl)
+        add a, #0x00 
+        jr z, entity_no_valid_matching
+
+        ;if ((e->type & signature) == signature)
+            ;;call function given
+        ld a, (hl)
+        and c           ;;a contains now the result of entity->type & signature
+        sub c           ;;entity->type - signature = 0, entity matching
+        jr nz, entity_no_matching_signature
+
+        push bc ;;we keep the signature
+
+        ;;Call the funcion given registered in m_function_given_forall
+		ld ix, #position_after_function_given_matching
+		push ix
+
+		ld ix, (#m_function_given_forall)
+		jp (ix)
+        
+		position_after_function_given_matching:
+        pop bc
+
+        entity_no_matching_signature:
+        ;;Add entity_size to hl to move to the reach the next entity available
+        ld a, #entity_size
+        call inc_hl_number
+
+    jr repeat_man_entity_forall_matching
+    entity_no_valid_matching:
+ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Pre requirements
 ;;  -
 ;; Objetive: Updates the entities by destroying all marked entities as dead
 ;;
