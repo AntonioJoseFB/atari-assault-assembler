@@ -2,8 +2,8 @@
 
 .area _DATA
 
-m_left_key:: .db #0x69
-m_right_key:: .db #0x61
+;;m_left_key:: .db #0x69
+;;m_right_key:: .db #0x61
 
 .area _CODE
 .globl man_entity_forall
@@ -16,6 +16,12 @@ m_right_key:: .db #0x61
 ;;cpc_telera
 .globl  cpct_scanKeyboard_f_asm
 .globl cpct_isKeyPressed_asm
+.globl Key_A
+.globl Key_D
+
+.globl entity_type_movable
+.globl entity_type_input
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pre requirements
@@ -26,45 +32,66 @@ m_right_key:: .db #0x61
 sys_physics_update_one_entity::
 
     ;;Check if the entity has type input
-    ld a, #0x04 ;;TODO: deberiamos poner la referencia a entity_type_input
-    and (hl)
-    jr nz, entity_has_input ;;TODO: ¡cuidado con esto!
+    ld a, (hl)                  ;;Type of the entity
+    ld d, #entity_type_input    ;;Type input
+    and d
+    jr z, entity_no_input       ;; If = 0, entity is not movable
 
-    ;;B is the current entity pos_x
-    inc hl
-    ld b, (hl)
+    call sys_physics_check_input
 
-    calculate_new_pos:
-    ;;C is the current entity vel_x
-    ld a, #0x04
-    call inc_hl_number
-    ld c, (hl)
+    entity_no_input :
+    ;;Now, update the x and y position
 
-    ;;Pos_x + Vel_x to know the new position of the entity
-    ld a, #0x00
-    add a, b
-    add a, c
+    ;;Entity->pos_x
+    inc hl                      ;; hl pointing to pos_x
+    ld a, (hl)                  ;; save pos_x in a
 
     push af
 
-    ;;Coming back to the pos_x memory direction fo the entity to modify it
     ld a, #0x04
-    call dec_hl_number
+    call inc_hl_number          ;;hl pointing to vel_x
 
     pop af
 
-    ld (hl), a 
-    dec hl
+    ld d, a                     ;;Save pos_x on d
+    ld a, (hl)                  ;;Save vel_x on a
+    add a, d                    ;; Now a contains pos_x+vel_x
 
-    jr end_update_one_entity
+    push af
 
-    entity_has_input: ;;TODO: esto no funciona
-        push hl
-        call sys_physics_check_input
-        pop hl
-        jr calculate_new_pos
-    end_update_one_entity:
+    ld a, #0x04
+    call dec_hl_number          ;;hl points to pos_x
 
+    pop af
+
+    ld (hl), a                  ;;Save newpos_x in pos_x
+
+    ;;Entity->pos_y
+    inc hl                      ;;Hl pointing to entity vel_y
+    ld a, (hl)                  ;; Save pos_y on a
+
+    push af
+
+    ld a, #0x04
+    call inc_hl_number
+
+    pop af
+
+    ld d, a                        ;;Saving pos_y on d
+    ld a, (hl)                     ;;Saving vel_y on a
+    add a, d                       ;;Now a contains e->pos_y + e->vel_y
+
+    push af
+
+    ld a, #0x04
+    call dec_hl_number              ;;Hl pointing to entity pos_y
+
+    pop af
+
+    ld (hl), a                      ;;Save newpos_y in pos_y
+
+    ld a, #0x02
+    call dec_hl_number              ;;hl points to the beginning of the entity
 ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pre requirements
@@ -75,14 +102,17 @@ ret
 sys_physics_check_input::
     push hl ;;save hl in the stack
     call cpct_scanKeyboard_f_asm
+
     ;;Check if left_key is pressed
-    ld hl, (m_left_key)
+    ld hl, #Key_A
     call cpct_isKeyPressed_asm
     jr  nz, left_key_pressed
+
     ;;Check if right_key is pressed
-    ld hl, (m_right_key)
+    ld hl, #Key_D
     call cpct_isKeyPressed_asm
     jr  nz, right_key_pressed
+
     ;;No key is pressed
     ld b, #0x00
     jr end_check_keyboard
@@ -99,11 +129,9 @@ sys_physics_check_input::
     call inc_hl_number
     ld (hl), b
 
-    ;;TODO: probar si haciendo push y pop antes de llamar a este metodo funciona, sino cambiar por esto
     ;;return hl to the beginning of the pointer
-    ;;ld a, #0x05
-    ;;call dec_hl_number
-    ;;push hl ;;TODO: no se si este push hace falta
+    ld a, #0x05
+    call dec_hl_number
 
     ret
 
