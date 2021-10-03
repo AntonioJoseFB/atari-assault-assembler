@@ -16,14 +16,16 @@
 .globl entity_type_render
 .globl entity_type_ai
 
+m_function_given_ai:: .dw #0x0000
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pre requirements
-;;  - HL: should contain the memory direction of the entity we want to update the ai
-;; Objetive: Update the ai for one entity
+;;  - HL: should contain the memory direction of the entity we want to check left/right move
+;; Objetive: Update the direction for one ai entity
 ;; Modifies: a, bc, (hl no se si lo modifica)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-sys_ai_update_one_entity::
+sys_ai_behviour_left_right::
     ;;right_bound = 80 - e->w
     ld a, #0x03
     call inc_hl_number ;;hl points to the w
@@ -66,6 +68,32 @@ sys_ai_update_one_entity::
     ;;return hl to the beginning of the entity
     ld a, #0x05
     call dec_hl_number
+ret
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Pre requirements
+;;  - HL: should contain the memory direction of the entity we want to update the ai
+;; Objetive: Update the ai for one entity
+;; Modifies: a, bc, (hl no se si lo modifica)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+sys_ai_update_one_entity::
+    
+    ld a, #0x0A
+    call inc_hl_number ;;hl points to the behaviour function
+
+    ;;Save the memory direction of the behaviour function in de
+    ld a, (hl)
+    ld e, a
+    dec hl
+    ld a, (hl)
+    ld d, a
+    ld (#m_function_given_ai), de
+
+    ld a, #0x09
+    call dec_hl_number ;;hl points to the behaviour function
+
+    jr (#m_function_given_ai)
 ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

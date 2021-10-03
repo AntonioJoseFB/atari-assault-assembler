@@ -13,6 +13,7 @@
 .globl sys_physics_update
 .globl sys_render_update
 .globl sys_ai_update
+.globl sys_ai_behviour_left_right
 
 ;;cpctelera utilities
 .globl cpct_waitVSYNC_asm
@@ -68,6 +69,8 @@ mothership_template::
     .db #0xFF   ;; vx = -1
     .db #0x00   ;; vy = 0
     .dw mothership_sprite
+    .dw #sys_ai_behviour_left_right ;;direccion de memoria de la funcion behviour
+
 
 playership_template::
     .db #0x01   ;; entity_type_render
@@ -78,6 +81,7 @@ playership_template::
     .db #0x00   ;; vx = 0 TODO: acordarme de ponerle velocidad 0
     .db #0x00   ;; vy = 0
     .dw playership_sprite
+    .ds 2;;.dw direccion de memoria de la funcion behviour
 
 player_template::
     .db #0x07  ;; entity_type_render | entity_type_movable | entity_type_input
@@ -88,6 +92,7 @@ player_template::
     .db #0x00  ;; vx = 0 TODO: acordarme de ponerle velocidad 0, este se va a mover por los inputs
     .db #0x00   ;; vy = 0
     .dw player_sprite
+    .ds 2;;.dw direccion de memoria de la funcion behviour
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

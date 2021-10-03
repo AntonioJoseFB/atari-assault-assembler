@@ -5,7 +5,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; """""Variables""""
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-m_entities: .ds 90                    ;;Reserved memory for the entities array
+m_entities: .ds 110                    ;;Reserved memory for the entities array
 m_zero_type_at_the_end: .db #0x00       ;;Trick for stop the loop of entities, positioned
 max_entities: .db 10                    ;;Num of maximum entities
 m_next_free_entity: .ds 2               ;;Reserved memory for the pointer of the next free entity
@@ -15,7 +15,7 @@ m_function_given_forall: .dw #0x0000    ;;Memory direction of the function that 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global variables
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-entity_size = 9 ;; 31 bytes = 24bytes de sprite + 7bytes datos
+entity_size = 11 ;; 31 bytes = 24bytes de sprite + 7bytes datos
 entity_type_invalid = 0x00
 entity_type_render = 0x01 ;;Lower bit signals renderable entity
 entity_type_movable = 0x02 ;;Second bit signals movable entity
