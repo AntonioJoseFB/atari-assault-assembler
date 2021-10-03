@@ -71,7 +71,7 @@ mothership_template::
 
 playership_template::
     .db #0x01   ;; entity_type_render
-    .db 1       ;; x
+    .db 0       ;; x
     .db 192     ;; y
     .db #0x04   ;; w ;;TODO: se supone que con los sprites se nos van a crear unas macros
     .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
@@ -146,17 +146,38 @@ man_game_init::
     ld bc, #entity_size
     call man_game_create_template_entity
 
+
     ;;This is the scoreboard
     ;;creating the playerships
+    ;;TODO: meter esto en un bucle y crear 3 playership en diferentes posiciones
     ld hl, #playership_template
     ld bc, #entity_size
-    ;;TODO: meter esto en un bucle y crear 3 playership en diferentes posiciones
     call man_game_create_template_entity
+
+    
+    ld hl, #playership_template
+    ld bc, #entity_size
+    call man_game_create_template_entity
+    inc de
+    ld a, #10
+    ld (de), a
+    dec de
+
+    ld hl, #playership_template
+    ld bc, #entity_size
+    call man_game_create_template_entity
+    inc de
+    ld a, #20
+    ld (de), a
+    dec de
+
 
     ;;creating the player
     ld hl, #player_template
     ld bc, #entity_size
     call man_game_create_template_entity
+
+
 
     ret
 
