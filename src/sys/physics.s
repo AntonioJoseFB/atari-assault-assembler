@@ -26,8 +26,8 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pre requirements
-;;  - HL: should contain the memory direction of the entity we want to update the render
-;; Objetive: Update the render for one entity
+;;  - HL: should contain the memory direction of the entity we want to update the physiscs
+;; Objetive: Update the physics for one entity
 ;; Modifies: a, bc, (hl no se si lo modifica)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 sys_physics_update_one_entity::
@@ -94,9 +94,10 @@ sys_physics_update_one_entity::
     ld a, #0x02
     call dec_hl_number              ;;hl points to the beginning of the entity
 ret
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pre requirements
-;;  - HL: should contain the memory direction of the entity we want to update the render
+;;  - HL: should contain the memory direction of the entity we want to update the input
 ;; Objetive: Check if a key is pressed
 ;; Modifies: AF, BC, DE, HL
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -139,7 +140,7 @@ sys_physics_check_input::
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Pre requirements
 ;;  -
-;; Objetive: Update the physics for all the entities
+;; Objetive: Update the physics for all the entities matching
 ;; Modifies: de
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 sys_physics_update::
@@ -148,13 +149,10 @@ sys_physics_update::
     ;;bc will contain the signature
     ld bc, #0x0000
 
-    ;;Forma de David
     ld a, #entity_type_movable
     add a, #entity_type_render
     ld c, a
 
-    ;;Mi forma
-    ;;ld c, #entity_type_movable
     call man_entity_forall_matching
 
 ret

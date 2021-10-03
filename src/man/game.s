@@ -12,6 +12,7 @@
 .globl sys_render_init
 .globl sys_physics_update
 .globl sys_render_update
+.globl sys_ai_update
 
 ;;cpctelera utilities
 .globl cpct_waitVSYNC_asm
@@ -59,7 +60,7 @@ player_sprite::
 ;;  - type, x, y, w, h, vx, vy, sprite
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 mothership_template::
-    .db #0x03   ;; TODO:poner como entity_type_movable | entity_type_render
+    .db #0x0B   ;; TODO:poner como entity_type_movable | entity_type_render | entity_type_ai
     .db 38      ;; x
     .db 10      ;; y
     .db #0x04   ;; w ;;TODO: se supone que con los sprites se nos van a crear unas macros
@@ -69,8 +70,8 @@ mothership_template::
     .dw mothership_sprite
 
 playership_template::
-    .db #0x01  ;; entity_type_render
-    .db 1      ;; x
+    .db #0x01   ;; entity_type_render
+    .db 1       ;; x
     .db 192     ;; y
     .db #0x04   ;; w ;;TODO: se supone que con los sprites se nos van a crear unas macros
     .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
@@ -161,6 +162,7 @@ man_game_init::
 
 man_game_play::
     game_loop:
+        call sys_ai_update
         call sys_physics_update
         call sys_render_update
         call man_entity_update

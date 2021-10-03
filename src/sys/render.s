@@ -3,18 +3,23 @@
 .area _DATA
 .area _CODE
 
+;;cpct utils
 .globl _cpct_setPALColour
 .globl _cpct_setVideoMode
 .globl _cpct_setPalette
 .globl cpct_setPalette_asm
-.globl man_entity_forall
 .globl cpct_getScreenPtr_asm
 .globl cpct_drawSprite_asm
 
+;sprite color palette
 .globl _main_palette
+
+;; man methods
+.globl man_entity_forall_matching
 
 ;;States of an entity
 .globl entity_type_dead
+.globl entity_type_render
 
 ;;Maths utilities
 .globl inc_hl_number
@@ -119,5 +124,8 @@ ret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 sys_render_update::
     ld de, #sys_render_one_entity
-    call man_entity_forall
+    ;;bc contains the signature
+    ld bc, #0x0000
+    ld c, #entity_type_render
+    call man_entity_forall_matching
 ret

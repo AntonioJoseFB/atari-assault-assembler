@@ -18,8 +18,9 @@ m_function_given_forall: .dw #0x0000    ;;Memory direction of the function that 
 entity_size = 9 ;; 31 bytes = 24bytes de sprite + 7bytes datos
 entity_type_invalid = 0x00
 entity_type_render = 0x01 ;;Lower bit signals renderable entity
-entity_type_movable = 0x02 ;;Lower bit signals movable entity
-entity_type_input = 0x04 ;;Lower bit signals input controlled entity
+entity_type_movable = 0x02 ;;Second bit signals movable entity
+entity_type_input = 0x04 ;;Third bit signals input controlled entity
+entity_type_ai = 0x08 ;;Fourth bit signals AI entity
 entity_type_dead = 0x80 ;;Upper bit signals dead entity
 entity_type_default = 0x7F  ;;Default entity (all bits = 1 but the one to signal dead)
 
