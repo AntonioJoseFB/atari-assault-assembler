@@ -15,8 +15,8 @@
 
 ;;AI system
 .globl sys_ai_update
-.globl sys_ai_behviour_left_right
-.globl sys_ai_behviour_mothership
+.globl sys_ai_behaviour_left_right
+.globl sys_ai_behaviour_mothership
 
 ;;cpctelera utilities
 .globl cpct_waitVSYNC_asm
@@ -84,7 +84,7 @@ mothership_template::
     .db #0xFF   ;; vx = -1
     .db #0x00   ;; vy = 0
     .dw mothership_sprite
-    .dw #sys_ai_behviour_mothership ;;ai_behaviour function
+    .dw #sys_ai_behaviour_mothership ;;ai_behaviour function
 
 enemy1_template::
     .db #0x0B   ;; TODO:poner como entity_type_movable | entity_type_render | entity_type_ai
@@ -95,7 +95,7 @@ enemy1_template::
     .db #0x00   ;; vx = -1
     .db #0x00   ;; vy = 0
     .dw enemy1_sprite
-    .dw #sys_ai_behviour_left_right ;;ai_behaviour function
+    .dw #sys_ai_behaviour_left_right ;;ai_behaviour function
 
 playership_template::
     .db #0x01   ;; entity_type_render

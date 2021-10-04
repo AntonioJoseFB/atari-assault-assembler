@@ -27,7 +27,7 @@ m_function_given_ai:: .dw #0x0000
 ;; Objetive: Update the direction for one ai entity
 ;; Modifies: a, bc, (hl no se si lo modifica)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-sys_ai_behviour_left_right::
+sys_ai_behaviour_left_right::
     ;;right_bound = 80 - e->w
     ld a, #0x03
     call inc_hl_number ;;hl points to the w
@@ -37,7 +37,7 @@ sys_ai_behviour_left_right::
 
     push af             ;;a contains righ_bound
 
-    ;;if( e-> w == 0) e -> vx = 1
+    ;;if( e-> x == 0) e -> vx = 1
     ld a, #0x00
     dec hl
     dec hl              ;;hl points to pos_x
@@ -50,6 +50,7 @@ sys_ai_behviour_left_right::
     jr z, left_collision
 
     ;;else, nothing happens
+    dec hl
     jr end_ai_update
 
     right_collision:
@@ -65,11 +66,11 @@ sys_ai_behviour_left_right::
     ld a, #0x04
     call inc_hl_number
     ld (hl), b
-
-    end_ai_update:
     ;;return hl to the beginning of the entity
     ld a, #0x05
     call dec_hl_number
+
+    end_ai_update:
 ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -78,7 +79,7 @@ ret
 ;; Objetive: Make that the AI mothershp entity behaves as we have defined
 ;; Modifies: a, bc, (hl no se si lo modifica)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-sys_ai_behviour_mothership::
+sys_ai_behaviour_mothership::
     
     ld a, #0x14
     inc hl
@@ -94,7 +95,7 @@ sys_ai_behviour_mothership::
 
     end_of_ai_behaviour:
 
-    call sys_ai_behviour_left_right
+    call sys_ai_behaviour_left_right
 ret
 
 
@@ -119,9 +120,10 @@ sys_ai_update_one_entity::
     ld (#m_function_given_ai), de
 
     ld a, #0x09
-    call dec_hl_number ;;hl points to the behaviour function
+    call dec_hl_number ;;hl points to the beginnign of the entity
 
-    jr (#m_function_given_ai)
+	ld ix, (#m_function_given_ai)
+	jp (ix)
 ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
