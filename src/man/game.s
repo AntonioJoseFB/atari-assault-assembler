@@ -12,6 +12,7 @@
 .globl sys_render_init
 .globl sys_physics_update
 .globl sys_render_update
+.globl sys_animations_update
 
 ;;AI system
 .globl sys_ai_update
@@ -34,13 +35,16 @@
 .globl inc_hl_number
 .globl dec_hl_number
 
+;;animation structs
+.globl man_anim_enemy1
+
 m_enemy_on_lane:: .db #0x00
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Sprite:
 ;;  - 4 width, 6 height = 24bytes, TODO: cada sprite tendra sus dimensiones y tamanyo en memoria
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-mothership_sprite::
+spr_mothership::
     .db #0x00, #0x0F, #0x0F, #0x00 ;; TODO: Tenemos que hacer lo de la lectura de sprites, conversion y setear la paleta
     .db #0x00, #0x0F, #0x0F, #0x00
     .db #0x00, #0x0F, #0x0F, #0x00
@@ -48,7 +52,8 @@ mothership_sprite::
     .db #0x00, #0x0F, #0x0F, #0x00
     .db #0x00, #0x0F, #0x0F, #0x00
 
-enemy1_sprite::
+;;Enmey alive sprite
+spr_enemy1_0::
     .db #0x00, #0xF0, #0xF0, #0x00 ;; TODO: Tenemos que hacer lo de la lectura de sprites, conversion y setear la paleta
     .db #0x00, #0xF0, #0xF0, #0x00
     .db #0x00, #0xF0, #0xF0, #0x00
@@ -56,7 +61,16 @@ enemy1_sprite::
     .db #0x00, #0xF0, #0xF0, #0x00
     .db #0x00, #0xF0, #0xF0, #0x00
 
-playership_sprite::
+;;Enmey alive sprite
+spr_enemy1_1::
+    .db #0x00, #0xF0, #0xF0, #0x00 ;; TODO: Tenemos que hacer lo de la lectura de sprites, conversion y setear la paleta
+    .db #0x00, #0xF8, #0xF8, #0x00
+    .db #0x00, #0xF8, #0xF8, #0x00
+    .db #0x00, #0xF8, #0xF8, #0x00
+    .db #0x00, #0xF8, #0xF8, #0x00
+    .db #0x00, #0xF8, #0xF8, #0x00
+
+spr_playership::
     .db #0x00, #0xFF, #0xFF, #0x00 ;; TODO: Tenemos que hacer lo de la lectura de sprites, conversion y setear la paleta
     .db #0x00, #0xFF, #0xFF, #0x00
     .db #0x00, #0xFF, #0xFF, #0x00
@@ -64,7 +78,7 @@ playership_sprite::
     .db #0x00, #0xFF, #0xFF, #0x00
     .db #0x00, #0xFF, #0xFF, #0x00
 
-player_sprite::
+spr_player::
     .db #0x00, #0x88, #0x88, #0x00 ;; TODO: Tenemos que hacer lo de la lectura de sprites, conversion y setear la paleta
     .db #0x00, #0x88, #0x88, #0x00
     .db #0x00, #0x88, #0x88, #0x00
@@ -73,7 +87,7 @@ player_sprite::
     .db #0x00, #0x88, #0x88, #0x00
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Entity struct:
-;;  - type, x, y, w, h, vx, vy, sprite, ai_behaviour
+;;  - type, x, y, w, h, vx, vy, sprite, ai_behaviour, AnimFrame_t, anim_counter
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 mothership_template::
     .db #0x0B   ;; TODO:poner como entity_type_movable | entity_type_render | entity_type_ai
@@ -83,19 +97,23 @@ mothership_template::
     .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
     .db #0xFF   ;; vx = -1
     .db #0x00   ;; vy = 0
-    .dw mothership_sprite
+    .dw spr_mothership
     .dw #sys_ai_behaviour_mothership ;;ai_behaviour function
+    .dw #0x0000 ;; Doesnt have animation
+    .db #0x00   ;;Anim_counter
 
 enemy1_template::
-    .db #0x0B   ;; TODO:poner como entity_type_movable | entity_type_render | entity_type_ai
+    .db #0x1B  ;; TODO:poner como entity_type_movable | entity_type_render | entity_type_ai | entity_type_anim
     .db 0      ;; x
     .db 40      ;; y
     .db #0x04   ;; w ;;TODO: se supone que con los sprites se nos van a crear unas macros
     .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
     .db #0x00   ;; vx = -1
     .db #0x00   ;; vy = 0
-    .dw enemy1_sprite
+    .dw spr_enemy1_0
     .dw #sys_ai_behaviour_left_right ;;ai_behaviour function
+    .dw man_anim_enemy1
+    .db #0x0C   ;;Anim_counter
 
 playership_template::
     .db #0x01   ;; entity_type_render
@@ -105,8 +123,10 @@ playership_template::
     .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
     .db #0x00   ;; vx = 0 TODO: acordarme de ponerle velocidad 0
     .db #0x00   ;; vy = 0
-    .dw playership_sprite
+    .dw spr_playership
     .dw #0x0000 ;;Doesnt have ai_behviour
+    .dw #0x0000 ;; Doesnt have animation
+    .db #0x00   ;;Anim_counter
 
 player_template::
     .db #0x07  ;; entity_type_render | entity_type_movable | entity_type_input
@@ -116,8 +136,10 @@ player_template::
     .db #0x06   ;; h ;;TODO: se supone que con los sprites se nos van a crear unas macros
     .db #0x00  ;; vx = 0 TODO: acordarme de ponerle velocidad 0, este se va a mover por los inputs
     .db #0x00   ;; vy = 0
-    .dw player_sprite
+    .dw spr_player
     .dw #0x0000 ;;Doesnt have ai_behviour
+    .dw #0x0000 ;; Doesnt have animation
+    .db #0x00   ;;Anim_counter
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -271,6 +293,7 @@ man_game_play::
     game_loop:
         call sys_ai_update
         call sys_physics_update
+        ;;call sys_animations_update ;;TODO: descomentar
         call sys_render_update
         call man_entity_update
         ;;ld a, #0x05
